@@ -16,8 +16,29 @@ This repository provides fully reproducible code for simulating datasets, comput
 
 ---
 
-## Data Generating Models
+## Repository Structure
 
+| File | Description |
+|------|-------------|
+| `data_generator.py` | Generate simulated datasets under different contamination settings |
+| `run_wcETEL_analysis_module.py` | Implements wcETEL iterative weight updates using semi-discrete optimal transport |
+| `optimal_transport_1d.py` | Power diagram & semi-discrete OT computations |
+| `parallel_runner.py` | Parallel execution of wcETEL weight computation across datasets |
+| `scripts/run_clean_mild_heavy.py` | Automates generating datasets and running analysis for all 3 settings |
+| `scripts/plot_weights_overlay.py` | Generate overlay plots of weights for each contamination setting |
+| `wcETEL_results/` | Stores output weights and intermediate results |
+| `plots/` | Stores generated weight overlay plots for clean, mild, and heavy contamination |
+
+---
+
+
+## Step-by-Step Pipeline
+
+This section explains exactly how to reproduce all results from scratch.
+
+### 1. Generate 50 datasets
+
+Datasets are generated under 3 contamination settings: clean, mild, heavy.
 We simulate 50 datasets for each of three contamination settings:
 
 | Setting | Main signal | Contamination |
@@ -26,7 +47,7 @@ We simulate 50 datasets for each of three contamination settings:
 | Mild    | 300 samples, with 14 contaminated points (7 Beta(1,100) and 7 Beta(100,1)) | Mild contamination |
 | Heavy   | 300 samples, with 60 contaminated points (30 Beta(1,100) and 30 Beta(100,1)) | Heavy contamination |
 
-### Data generation code
+The dataset generator is located in `data_generator.py`:
 
 ```python
 def generate_datasets(mode="heavy", N=300, n_datasets=50):
@@ -50,34 +71,73 @@ def generate_datasets(mode="heavy", N=300, n_datasets=50):
     return datasets
 ```
 
-### Example plot (heavy contamination)
+### 2. Compute wcETEL weights
 
-![Heavy contamination plot](plots/heavy_weights_overlay.png)
+The weight computations are fully parallelized using parallel_runner.py.
 
----
+```python
+mode = sys.argv[1]
+datasets = generate_datasets(mode)
+output_dir = f"wcETEL_results/{mode}"
+os.makedirs(output_dir, exist_ok=True)
 
-## Repository Structure
+def run_and_save(index_X):
+    index, X = index_X
+    print(f"Running dataset: {index}")
+    weights, masses1 = run_wcETEL_analysis(X)
+    with open(f"{output_dir}/dataset_{index}_weights.pkl", "wb") as f:
+        pickle.dump({"weights": weights, "masses1": masses1}, f)
 
-| File | Description |
-|------|-------------|
-| `data_generator.py` | Generate simulated datasets under different contamination settings |
-| `run_wcETEL_analysis_module.py` | Implements wcETEL iterative weight updates using semi-discrete optimal transport |
-| `optimal_transport_1d.py` | Power diagram & semi-discrete OT computations |
-| `parallel_runner.py` | Parallel execution of wcETEL weight computation across datasets |
-| `scripts/run_clean_mild_heavy.py` | Automates generating datasets and running analysis for all 3 settings |
-| `scripts/plot_weights_overlay.py` | Generate overlay plots of weights for each contamination setting |
-| `wcETEL_results/` | Stores output weights and intermediate results |
-| `plots/` | Stores generated weight overlay plots for clean, mild, and heavy contamination |
+if __name__ == "__main__":
+    data_list = list(enumerate(datasets))
+    max_workers = min(4, multiprocessing.cpu_count())
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        executor.map(run_and_save, data_list)
+```
 
----
+We can execute all three contamination levels via:
+
+```
+python scripts/run_clean_mild_heavy.py
+```
+Or we can run individual modes:
+
+```
+python parallel_runner.py clean
+```
+```
+python parallel_runner.py mild
+```
+```
+python parallel_runner.py heavy
+```
+
+Results will be stored in the wcETEL_results/ folder.
+
+### 3. Generate weight overlay plots
+
+After all computations are completed, generate plots:
+
+```
+python scripts/plot_weights_overlay.py
+```
+
+This will generate 3 overlay plots under the plots/ folder.
+
+Heavy contamination example:
+
+![Heavy contamination](plots/heavy_weights_overlay.png)
+
+Mild contamination example:
+
+![Mild contamination](plots/mild_weights_overlay.png)
+
+Clean contamination example:
+
+![Clean contamination](plots/clean_weights_overlay.png)
 
 
-
-## Running the Code
-
-### 1. Run the full pipeline
-
-The entire pipeline can be run directly from the `parallel.ipynb` notebook.
+### The entire pipeline can be run directly from the `parallel.ipynb` notebook.
 
 The notebook will:
 - Launch 3 contamination settings in parallel.
@@ -85,20 +145,9 @@ The notebook will:
 - Generate and save all weight overlay plots.
 - Display all plots directly inside the notebook.
 
-### 2. Manual execution via command line (optional)
 
-If you prefer to run each step manually:
+---
 
-#### Compute weights
-
-```bash
-python scripts/run_clean_mild_heavy.py
-```
-#### Generate plots
-
-```bash
-python scripts/plot_weights_overlay.py
-```
 
 ## Method Summary
 
