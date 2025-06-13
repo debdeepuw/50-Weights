@@ -22,7 +22,9 @@ This repository provides fully reproducible code for simulating datasets, comput
 
 The wcETEL method solves the following optimization problem:
 
-**w̃(θ) = argmin₍w₎ { D(Qw ∥ Pₙ) + λ W₂²(Qw, Fθ) }**
+$$\widetilde{w}(\theta) = argmin_w [D(Q_w \| P_n) + \lambda W_2^2 (Q_w, F_\theta)$$
+
+
 
 - $Q_w$ is a discrete distribution over the observed data points.
 - $P_n$ is the empirical distribution.
