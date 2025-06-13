@@ -14,7 +14,25 @@ The Wasserstein penalty allows downweighting of contaminated data points and mak
 
 This repository provides fully reproducible code for simulating datasets, computing wcETEL weights, and visualizing the results under various contamination levels.
 
+
 ---
+
+
+## Method Summary
+
+The wcETEL method solves the following optimization problem:
+
+**w̃(θ) = argmin₍w₎ { D(Qw ∥ Pₙ) + λ W₂²(Qw, Fθ) }**
+
+- $Q_w$ is a discrete distribution over the observed data points.
+- $P_n$ is the empirical distribution.
+- The Wasserstein distance $W_2$ is computed using semi-discrete optimal transport with power diagrams.
+
+The iterative procedure updates weights using a fixed-point algorithm that combines empirical likelihood and optimal transport.
+
+
+---
+
 
 ## Repository Structure
 
@@ -28,6 +46,7 @@ This repository provides fully reproducible code for simulating datasets, comput
 | `scripts/plot_weights_overlay.py` | Generate overlay plots of weights for each contamination setting |
 | `wcETEL_results/` | Stores output weights and intermediate results |
 | `plots/` | Stores generated weight overlay plots for clean, mild, and heavy contamination |
+
 
 ---
 
@@ -145,19 +164,4 @@ The notebook will:
 - Generate and save all weight overlay plots.
 - Display all plots directly inside the notebook.
 
-
----
-
-
-## Method Summary
-
-The wcETEL method solves the following optimization problem:
-
-**w̃(θ) = argmin₍w₎ { D(Qw ∥ Pₙ) + λ W₂²(Qw, Fθ) }**
-
-- $Q_w$ is a discrete distribution over the observed data points.
-- $P_n$ is the empirical distribution.
-- The Wasserstein distance $W_2$ is computed using semi-discrete optimal transport with power diagrams.
-
-The iterative procedure updates weights using a fixed-point algorithm that combines empirical likelihood and optimal transport.
 
