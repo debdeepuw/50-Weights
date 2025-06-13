@@ -22,7 +22,7 @@ This repository provides fully reproducible code for simulating datasets, comput
 
 The wcETEL method solves the following optimization problem:
 
-$$\widetilde{w}(\theta) = argmin_w [D(Q_w \| P_n) + \lambda W_2^2 (Q_w, F_\theta)$$
+$$\widetilde{w}(\theta) = argmin_w [D(Q_w \| P_n) + \lambda W_2^2 (Q_w, F_\theta)]$$
 
 
 
